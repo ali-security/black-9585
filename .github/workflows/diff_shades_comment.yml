@@ -1,19 +1,18 @@
 name: diff-shades-comment
 
 on:
-  workflow_run:
-    workflows: [diff-shades]
-    types: [completed]
+  workflow_dispatch:
+
 
 permissions:
   pull-requests: write
 
 jobs:
   comment:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: MatteoH2O1999/setup-python@v4
         with:
           python-version: "*"
 

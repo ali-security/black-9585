@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-2019, ubuntu-20.04, macos-latest]
+        os: [windows-2019, ubuntu-20.04, macos-12]
         include:
           - os: windows-2019
             pathsep: ";"
@@ -23,7 +23,7 @@ jobs:
             pathsep: ":"
             asset_name: black_linux
             executable_mime: "application/x-executable"
-          - os: macos-latest
+          - os: macos-12
             pathsep: ":"
             asset_name: black_macos
             executable_mime: "application/x-mach-binary"
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set up latest Python
-        uses: actions/setup-python@v4
+        uses: MatteoH2O1999/setup-python@v4
         with:
           python-version: "*"
 

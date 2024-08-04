@@ -1,6 +1,7 @@
 name: Publish to PyPI
 
 on:
+  push:
   release:
     types: [published]
 
@@ -10,15 +11,18 @@ permissions:
 jobs:
   main:
     name: sdist + pure wheel
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Set up latest Python
-        uses: actions/setup-python@v4
+        uses: MatteoH2O1999/setup-python@v4
         with:
           python-version: "*"
+      - name: Create version file
+        run: |
+          echo "version = '22.12.0+sp1'" > src/_black_version.py
 
       - name: Install latest pip, build, twine
         run: |
@@ -28,10 +32,11 @@ jobs:
       - name: Build wheel and source distributions
         run: python -m build
 
-      - name: Upload to PyPI via Twine
-        env:
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload --verbose -u '__token__' dist/*
+      - name: Upload wheels as workflow artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: black-wheels
+          path: dist/*.whl
 
   mypyc:
     name: mypyc wheels (${{ matrix.name }})
@@ -40,23 +45,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             name: linux-x86_64
           - os: windows-2019
             name: windows-amd64
-          - os: macos-11
-            name: macos-x86_64
-            macos_arch: "x86_64"
-          # Only build x86_64 wheels on macos until #3312 is fixed
-          # - os: macos-11
-          #   name: macos-arm64
-          #   macos_arch: "arm64"
-          # - os: macos-11
-          #   name: macos-universal2
-          #   macos_arch: "universal2"
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Create version file
+        run: |
+          echo "version = '22.12.0+sp1'" > src/_black_version.py
 
       - name: Build wheels via cibuildwheel
         uses: pypa/cibuildwheel@v2.11.2
@@ -69,15 +68,10 @@ jobs:
           name: ${{ matrix.name }}-mypyc-wheels
           path: ./wheelhouse/*.whl
 
-      - name: Upload wheels to PyPI via Twine
-        env:
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: pipx run twine upload --verbose -u '__token__' wheelhouse/*.whl
-
   update-stable-branch:
     name: Update stable branch
     needs: [main, mypyc]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
 
